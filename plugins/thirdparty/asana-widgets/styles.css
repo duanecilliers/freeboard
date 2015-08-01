@@ -1,0 +1,7 @@
+.asana-user-profiles {
+  white-space: initial;
+}
+.asana-user-profiles .asana-user {
+  display: inline-block;
+  margin: 10px;
+}

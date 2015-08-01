@@ -57,8 +57,8 @@
         "name"         : "refresh_time",
         "display_name" : "Refresh Time",
         "type"         : "text",
-        "description"  : "In milliseconds",
-        "default_value": 84600
+        "description"  : "In seconds",
+        "default_value": 86400
       }
     ],
     // **newInstance(settings, newInstanceCallback, updateCallback)** (required) : A function that will be called when a new instance of this plugin is requested.
@@ -141,7 +141,7 @@
     }
 
     // Here we call createRefreshTimer with our current settings, to kick things off, initially. Notice how we make use of one of the user defined settings that we setup earlier.
-    createRefreshTimer(currentSettings.refresh_time);
+    createRefreshTimer(currentSettings.refresh_time * 60);
   }
 
   // ## Asana Users Datasource Plugin
@@ -184,8 +184,8 @@
         "name"         : "refresh_time",
         "display_name" : "Refresh Time",
         "type"         : "text",
-        "description"  : "In milliseconds",
-        "default_value": 84600
+        "description"  : "In seconds",
+        "default_value": 86400
       }
     ],
     // **newInstance(settings, newInstanceCallback, updateCallback)** (required) : A function that will be called when a new instance of this plugin is requested.
@@ -270,21 +270,17 @@
     }
 
     // Here we call createRefreshTimer with our current settings, to kick things off, initially. Notice how we make use of one of the user defined settings that we setup earlier.
-    createRefreshTimer(currentSettings.refresh_time);
+    createRefreshTimer(currentSettings.refresh_time * 60);
   }
 
-  // ## A Widget Plugin
-  //
-  // -------------------
-  // ### Widget Definition
-  //
+  // ## Asana User Profiles Widget
   // -------------------
   // **freeboard.loadWidgetPlugin(definition)** tells freeboard that we are giving it a widget plugin. It expects an object with the following:
   freeboard.loadWidgetPlugin({
     // Same stuff here as with datasource plugin.
-    "type_name"   : "asana_widget_plugin",
-    "display_name": "Asana Widget Plugin",
-        "description" : "Some sort of description <strong>with optional html!</strong>",
+    "type_name"   : "asana_user_profiles",
+    "display_name": "Asana User Profiles",
+        "description" : "Display a list of Asana user profiles",
     // **external_scripts** : Any external scripts that should be loaded before the plugin instance is created.
     // "external_scripts": [
     //   "https://github.com/Asana/node-asana/releases/download/v0.9.1/asana-min.js"
@@ -293,30 +289,21 @@
     "fill_size" : false,
     "settings"    : [
       {
-        "name"        : "api_key",
-        "display_name": "API Key",
-        "type"        : "text"
+        "name": "users",
+        "display_name": "Asana Users Object",
+        "description": "User Asana Users Data Source",
+        "type": "calculated"
       },
       {
         "name"        : "size",
         "display_name": "Size",
-        "type"        : "option",
-        "options"     : [
-          {
-            "name" : "Regular",
-            "value": "regular"
-          },
-          {
-            "name" : "Big",
-            "value": "big"
-          }
-        ]
+        "type"        : "text"
       }
     ],
     // Same as with datasource plugin, but there is no updateCallback parameter in this case.
     newInstance   : function(settings, newInstanceCallback)
     {
-      newInstanceCallback(new AsanaWidgetPlugin(settings));
+      newInstanceCallback(new AsanaUserProfilesWidget(settings));
     }
   });
 
@@ -324,13 +311,13 @@
   //
   // -------------------
   // Here we implement the actual widget plugin. We pass in the settings;
-  var AsanaWidgetPlugin = function(settings)
+  var AsanaUserProfilesWidget = function(settings)
   {
     var self = this;
     var currentSettings = settings;
 
     // Here we create an element to hold the text we're going to display. We're going to set the value displayed in it below.
-    var myTextElement = $("<span></span>");
+    var myTextElement = $('<div class="asana-user-profiles"></div>');
 
     // **render(containerElement)** (required) : A public function we must implement that will be called when freeboard wants us to render the contents of our widget. The container element is the DIV that will surround the widget.
     self.render = function(containerElement)
@@ -347,14 +334,7 @@
     // Blocks of different sizes may be supported in the future.
     self.getHeight = function()
     {
-      if(currentSettings.size == "big")
-      {
-        return 2;
-      }
-      else
-      {
-        return 1;
-      }
+      return parseInt(currentSettings.size);
     }
 
     // **onSettingsChanged(newSettings)** (required) : A public function we must implement that will be called when a user makes a change to the settings.
@@ -368,10 +348,23 @@
     self.onCalculatedValueChanged = function(settingName, newValue)
     {
       // Remember we defined "the_text" up above in our settings.
-      if(settingName == "the_text")
+      if(settingName == "users")
       {
+        var output = '';
+        newValue.map(function(user) {
+          console.log(user);
+          output += '<div class="asana-user">';
+          output += '<a href="mailto:' + user.email + '">';
+          if (user.photo !== null) {
+            output += '<img title="' + user.name + '" src="' + user.photo.image_128x128 + '">';
+          } else {
+            output += '<img title="' + user.name + '" src="http://signposthq.co.za/images/signpost-logo.gif">';
+          }
+          output += '</a>';
+          output += '</div>';
+        });
         // Here we do the actual update of the value that's displayed in on the screen.
-        $(myTextElement).html(newValue);
+        $(myTextElement).html(output);
       }
     }
 
