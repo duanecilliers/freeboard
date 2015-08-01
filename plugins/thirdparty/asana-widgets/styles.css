@@ -5,3 +5,7 @@
   display: inline-block;
   margin: 10px;
 }
+.asana-user-profiles .asana-user img {
+  max-width: 100px;
+  height: auto;
+}
