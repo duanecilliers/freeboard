@@ -16,6 +16,13 @@
 .asana-user-profile {
 
 }
+.asana-user-profile-header {
+  display: block;
+  height: 36px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #202020;
+}
 .asana-user-profile-header img {
   float: left;
   margin: 0 10px 10px 0;
