@@ -464,12 +464,16 @@
       if(settingName == "users")
       {
         var user = newValue,
-          image = user.photo !== null ? user.photo.image_128x128 : 'http://signposthq.co.za/images/signpost-logo.gif',
+          image = user.photo !== null ? user.photo.image_36x36 : 'http://signposthq.co.za/images/signpost-logo.gif',
           template = _.template(
-            '<a href="mailto:{{ email }}">' +
+            '<a class="asana-user-profile-header href="mailto:{{ email }}">' +
               '<img title="{{ name }}" src="{{ image }}">' +
+              '<strong>{{ name }}</strong><br>' +
+              '<em>{{ email }}</em>' +
             '</a>'
           );
+
+        console.log(user);
 
         // Here we do the actual update of the value that's displayed in on the screen.
         $(myTextElement).html(template({
