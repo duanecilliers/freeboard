@@ -455,27 +455,25 @@
     // **onCalculatedValueChanged(settingName, newValue)** (required) : A public function we must implement that will be called when a calculated value changes. Since calculated values can change at any time (like when a datasource is updated) we handle them in a special callback function here.
     self.onCalculatedValueChanged = function(settingName, newValue)
     {
+      _.templateSettings = {
+        interpolate: /\{\{(.+?)\}\}/g
+      };
+
       // Remember we defined "the_text" up above in our settings.
       if(settingName == "users")
       {
         var user = newValue,
-          tagLinkOpen = '<a href="mailto:' + user.email + '">',
-          tagLinkClose = '</a>',
-          avatar = '',
-          output = '';
-
-        if (user.photo !== null) {
-          avatar = '<img title="' + user.name + '" src="' + user.photo.image_128x128 + '">';
-        } else {
-          avatar = '<img title="' + user.name + '" src="http://signposthq.co.za/images/signpost-logo.gif">';
-        }
+          image = user.profile !== null ? user.photo.image_128x128 : 'http://signposthq.co.za/images/signpost-logo.gif',
+          template = _.template('<a href="mailto:{{ email }}"><img title="{{ name }}" src="{{ image }}"></a>');
 
         console.log(user);
 
-        output += tagLinkOpen + avatar + tagLinkClose;
-
         // Here we do the actual update of the value that's displayed in on the screen.
-        $(myTextElement).html(output);
+        $(myTextElement).html(template({
+          email: user.email,
+          name: user.name,
+          image: image
+        }));
       }
     }
 
