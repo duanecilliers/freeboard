@@ -231,8 +231,9 @@
           asana.getUser(user.id).then(function(user) {
             newData.push(user);
           }).then(function() {
+            var users = _.sortBy(newData, 'name');
             // I'm calling updateCallback to tell it I've got new data for it to munch on.
-            updateCallback(newData);
+            updateCallback(users);
           });
         });
       });
@@ -463,10 +464,8 @@
       if(settingName == "users")
       {
         var user = newValue,
-          image = user.profile !== null ? user.photo.image_128x128 : 'http://signposthq.co.za/images/signpost-logo.gif',
+          image = user.photo !== null ? user.photo.image_128x128 : 'http://signposthq.co.za/images/signpost-logo.gif',
           template = _.template('<a href="mailto:{{ email }}"><img title="{{ name }}" src="{{ image }}"></a>');
-
-        console.log(user);
 
         // Here we do the actual update of the value that's displayed in on the screen.
         $(myTextElement).html(template({
