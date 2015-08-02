@@ -14,8 +14,16 @@
       return client.users.findAll(workspace);
     }
 
-    self.getUser = function(user_id) {
-      return client.users.findById(user_id);
+    self.getUser = function(userId) {
+      return client.users.findById(userId);
+    }
+
+    self.getUserTasksforToday = function(userId, workspaceId) {
+      return client.tasks.findAll({
+        assignee: userId,
+        workspace: workspaceId,
+        assignee_status: 'today'
+      });
     }
   };
 
@@ -352,7 +360,6 @@
       {
         var output = '';
         newValue.map(function(user) {
-          console.log(user);
           output += '<div class="asana-user">';
           output += '<a href="mailto:' + user.email + '">';
           if (user.photo !== null) {
@@ -363,6 +370,110 @@
           output += '</a>';
           output += '</div>';
         });
+        // Here we do the actual update of the value that's displayed in on the screen.
+        $(myTextElement).html(output);
+      }
+    }
+
+    // **onDispose()** (required) : Same as with datasource plugins.
+    self.onDispose = function()
+    {
+    }
+  }
+
+  // ## Asana User Profile Widget
+  // -------------------
+  // **freeboard.loadWidgetPlugin(definition)** tells freeboard that we are giving it a widget plugin. It expects an object with the following:
+  freeboard.loadWidgetPlugin({
+    // Same stuff here as with datasource plugin.
+    "type_name"   : "asana_user_profile",
+    "display_name": "Asana User Profile",
+        "description" : "Display an Asana user profile",
+    // **external_scripts** : Any external scripts that should be loaded before the plugin instance is created.
+    // "external_scripts": [
+    //   "https://github.com/Asana/node-asana/releases/download/v0.9.1/asana-min.js"
+    // ],
+    // **fill_size** : If this is set to true, the widget will fill be allowed to fill the entire space given it, otherwise it will contain an automatic padding of around 10 pixels around it.
+    "fill_size" : false,
+    "settings"    : [
+      {
+        "name": "users",
+        "display_name": "Asana User Object",
+        "description": "Use the Asana Users Data Source",
+        "type": "calculated"
+      },
+      {
+        "name"        : "size",
+        "display_name": "Size",
+        "type"        : "text"
+      }
+    ],
+    // Same as with datasource plugin, but there is no updateCallback parameter in this case.
+    newInstance   : function(settings, newInstanceCallback)
+    {
+      newInstanceCallback(new AsanaUserProfilesWidget(settings));
+    }
+  });
+
+  // ### Widget Implementation
+  //
+  // -------------------
+  // Here we implement the actual widget plugin. We pass in the settings;
+  var AsanaUserProfilesWidget = function(settings)
+  {
+    var self = this;
+    var currentSettings = settings;
+
+    // Here we create an element to hold the text we're going to display. We're going to set the value displayed in it below.
+    var myTextElement = $('<div class="asana-user-profile"></div>');
+
+    // **render(containerElement)** (required) : A public function we must implement that will be called when freeboard wants us to render the contents of our widget. The container element is the DIV that will surround the widget.
+    self.render = function(containerElement)
+    {
+
+      // Here we append our text element to the widget container element.
+      $(containerElement).append(myTextElement);
+    }
+
+    // **getHeight()** (required) : A public function we must implement that will be called when freeboard wants to know how big we expect to be when we render, and returns a height. This function will be called any time a user updates their settings (including the first time they create the widget).
+    //
+    // Note here that the height is not in pixels, but in blocks. A block in freeboard is currently defined as a rectangle that is fixed at 300 pixels wide and around 45 pixels multiplied by the value you return here.
+    //
+    // Blocks of different sizes may be supported in the future.
+    self.getHeight = function()
+    {
+      return parseInt(currentSettings.size);
+    }
+
+    // **onSettingsChanged(newSettings)** (required) : A public function we must implement that will be called when a user makes a change to the settings.
+    self.onSettingsChanged = function(newSettings)
+    {
+      // Normally we'd update our text element with the value we defined in the user settings above (the_text), but there is a special case for settings that are of type **"calculated"** -- see below.
+      currentSettings = newSettings;
+    }
+
+    // **onCalculatedValueChanged(settingName, newValue)** (required) : A public function we must implement that will be called when a calculated value changes. Since calculated values can change at any time (like when a datasource is updated) we handle them in a special callback function here.
+    self.onCalculatedValueChanged = function(settingName, newValue)
+    {
+      // Remember we defined "the_text" up above in our settings.
+      if(settingName == "users")
+      {
+        var user = newValue,
+          tagLinkOpen = '<a href="mailto:' + user.email + '">',
+          tagLinkClose = '</a>',
+          avatar = '',
+          output = '';
+
+        if (user.photo !== null) {
+          avatar = '<img title="' + user.name + '" src="' + user.photo.image_128x128 + '">';
+        } else {
+          avatar = '<img title="' + user.name + '" src="http://signposthq.co.za/images/signpost-logo.gif">';
+        }
+
+        console.log(user);
+
+        output += tagLinkOpen + avatar + tagLinkClose;
+
         // Here we do the actual update of the value that's displayed in on the screen.
         $(myTextElement).html(output);
       }

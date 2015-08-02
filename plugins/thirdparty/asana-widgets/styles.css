@@ -9,3 +9,14 @@
   max-width: 100px;
   height: auto;
 }
+
+/**
+ * Asana User Profile Widget
+ */
+.asana-user-profile {
+
+}
+.asana-user-profile img {
+  float: left;
+  margin: 0 10px 10px 0;
+}
